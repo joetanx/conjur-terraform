@@ -2,25 +2,13 @@
 
 This guide demonstrates how Conjur can be used to provide secrets such as AWS access keys and OS credentials to Terraform
 
-In each use case, Terraform examples for 3 scenarios are shown:
+Usage scenarios:
 
-### 0.1. Hardcoded credentials
-
-Secrets are passed to the providers via attributes on the manifest file or environment variables
-
-### 0.2. Using Conjur provider
-
-Secrets are retrieved from Conjur via the Conjur provider and placed in data resources
-
-Subsequent blocks can use the secrets by referencing the `value` attributes of the data resources
-
-### 0.3. Using GitLab
-
-Using Terraform with GitLab allows us to leverage on the [JWT integration between Conjur and GitLab](https://github.com/joetanx/conjur-gitlab)
-
-Secrets can be retrieved from Conjur during an initial pipeline stage and passed on to Terraform on a subsequent pipeline stage via a pipeline artifact
-
-Leveraging on the JWT integration also allows each Terraform project in GitLab to be uniquely identified and authenticated
+|No|Scenario|Description|
+|---|---|---|
+|1.|Hardcoded credentials|Secrets are passed to the providers via attributes on the manifest file or environment variables|
+|2.|Using Conjur provider|Secrets are retrieved from Conjur via the Conjur provider and placed in data resources<br>Subsequent blocks can use the secrets by referencing the `value` attributes of the data resources|
+|3.|Integrated with GitLab|Using Terraform with GitLab allows us to leverage on the [JWT integration between Conjur and GitLab](https://github.com/joetanx/conjur-gitlab)<br>Secrets can be retrieved from Conjur during an initial pipeline stage and passed on to Terraform on a subsequent pipeline stage via a pipeline artifact<br>Leveraging on the JWT integration also allows each Terraform project in GitLab to be uniquely identified and authenticated|
 
 ### Software Versions
 
@@ -48,7 +36,7 @@ This section assumes that the Conjur environment is already available.
 
 Otherwise, setup Conjur master according to this guide: https://github.com/joetanx/setup/blob/main/conjur.md
 
-## 4.1. Setup Conjur policy
+## 1.1. Setup Conjur policy
 
 - Load the Conjur policy `tf-vars.yaml`
   - Creates the policy `PLACEHOLDER`
@@ -69,9 +57,29 @@ conjur policy load -b root -f tf-vars.yaml && rm -f tf-vars.yaml
 
 ## 2.1. Hardcoded credentials
 
+### 2.1.1. AWS provider configuration
+
 The AWS credentials are passed to the [AWS provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs) via either attributes on the manifest file and environment variables
 
-### 2.1.1. Example Terraform manifest:
+#### 2.1.1.1. Environment variables
+
+```console
+export AWS_REGION="ap-southeast-1"
+export AWS_ACCESS_KEY_ID="<aws_access_key_id>"
+export AWS_SECRET_ACCESS_KEY="<aws_secret_access_key>"
+```
+
+#### 2.1.1.2. Attributes on the manifest file
+
+```terraform
+provider "aws" {
+  region     = "ap-southeast-1"
+  access_key = "<aws_access_key_id>"
+  secret_key = "<aws_secret_access_key>"
+}
+```
+
+### 2.1.2. Example Terraform manifest:
 
 - Creates a S3 bucket with public access disabled
 - Uploads [demo.txt](/demo.txt) to the newly created bucket
@@ -87,9 +95,7 @@ terraform {
 }
 
 provider "aws" {
-  region     = "ap-southeast-1"
-  access_key = "<aws_access_key_id>"
-  secret_key = "<aws_secret_access_key>"
+  # <edit here as necessary>
 }
 
 resource "aws_s3_bucket" "demo" {
@@ -121,7 +127,7 @@ output "arn" {
 }
 ```
 
-### 2.1.2. Testing the example hardcoded manifest
+### 2.1.3. Testing the example manifest
 
 1. Create Terraform working directory and `cd` into it: `mkdir tfdemo && cd $_`
 2. Edit the manifest with your AWS credentials and the bucket name and save it as `main.tf` in the working directory
@@ -150,9 +156,33 @@ output "arn" {
 
 ## 2.2. Using Conjur provider
 
-The [Conjur provider](https://registry.terraform.io/providers/cyberark/conjur/latest/docs)
+### 2.2.1. Conjur provider configuration
 
-### 2.2.1. Example Terraform manifest:
+The parameters required for Conjur communications are passed to the [Conjur provider](https://registry.terraform.io/providers/cyberark/conjur/latest/docs) via either attributes on the manifest file and environment variables
+
+#### 2.2.1.1. Environment variables
+
+```console
+export CONJUR_APPLIANCE_URL="https://<conjur-service-fqdn>"
+export CONJUR_ACCOUNT="<conjur-account-name>"
+export CONJUR_AUTHN_LOGIN="<conjur-host-identity>"
+export CONJUR_AUTHN_API_KEY="<conjur-host-api-key>"
+export CONJUR_CERT_FILE="<path-to-conjur-or-CA-certificate>"
+```
+
+#### 2.2.1.2. Attributes on the manifest file
+
+```terraform
+provider "conjur" {
+  appliance_url = "https://<conjur-service-fqdn>"
+  account = "<conjur-account-name>"
+  login="<conjur-host-identity>"
+  api_key="<conjur-host-api-key>"
+  ssl_cert="<path-to-conjur-or-CA-certificate>"
+}
+```
+
+### 2.2.2. Example Terraform manifest:
 
 ```terraform
 terraform {
@@ -168,7 +198,9 @@ terraform {
   }
 }
 
-provider "conjur" {}
+provider "conjur" {
+  # <edit here as necessary>
+}
 
 data "conjur_secret" "awsakid" {
   name = "aws_api/awsakid"
@@ -213,7 +245,11 @@ output "arn" {
 }
 ```
 
-## 2.3. Using GitLab
+### 2.2.3. Testing the example manifest
+
+Same steps as [2.1.3.](#213-testing-the-example-manifest)
+
+## 2.3. Integrated with GitLab
 
 # . Deploy IIS web server using `remote-exec` (`winrm`)
 
@@ -221,7 +257,7 @@ output "arn" {
 
 ## .2. Using Conjur provider
 
-## .3. Using GitLab
+## .3. Integrated with GitLab
 
 # . Deploy apache web server using `remote-exec` (`ssh`)
 
@@ -229,4 +265,4 @@ output "arn" {
 
 ## .2. Using Conjur provider
 
-## .3. Using GitLab
+## .3. Integrated with GitLab
