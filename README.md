@@ -32,37 +32,9 @@ rm -f /etc/yum.repos.d/hashicorp.repo
 
 ## 0.4. Integration with Conjur
 
-This section assumes that the Conjur environment is already available.
+This guide assumes that the Conjur environment is already available.
 
-Otherwise, setup Conjur master according to this guide: https://github.com/joetanx/setup/blob/main/conjur.md
-
-### 0.4.1. Setup Conjur policy
-
-Load the Conjur policy `tf-vars.yaml`
-
-- Creates the policy `linux` and `windows` for the `remote-exec` example in [section 5](#5-example-remote-exec-provisioner)
-- Creates the policy `terraform` and host `demo` under it for use with the Terraform Conjur provider
-  - Grants host `terraform/demo` access to variables in `aws_api`, `linux` and `windows` policies by adding it to `consumers` group
-- Add GitLab projects as hosts into the `jwt-apps/gitlab` policy
-  - The `jwt-apps/gitlab` policy is created in https://github.com/joetanx/conjur-gitlab
-  - The hosts are added to the same-name layer, which is added to the JWT authenticator's `consumers` group to allow them to authenticate to the JWT web service
-  - Respective hosts are granted access to variables in `aws_api`, `linux` and `windows` policies by adding them to `consumers` group
-
-|GitLab project name|Conjur host identity|
-|---|---|
-|Terraform AWS S3 Demo|`cybr/terraform-aws-s3-demo`|
-|Terraform AWS S3 Cleanup|`cybr/terraform-aws-s3-cleanup`|
-|Terraform remote-exec SSH Demo|`cybr/terraform-remote-exec-ssh-demo`|
-|Terraform remote-exec WinRM Demo|`cybr/terraform-remote-exec-winrm-demo`|
-
-☝️ Project names are important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
-
-```console
-curl -O https://raw.githubusercontent.com/joetanx/conjur-terraform/main/tf-vars.yaml
-conjur policy load -b root -f tf-vars.yaml && rm -f tf-vars.yaml
-```
-
-☝️ The API key of the Conjur identity `host/terraform/demo` will be shown on console after loading the policy, this key is required for the Terraform Conjur provider
+Otherwise, setup a single-node Conjur according to this guide: https://github.com/joetanx/setup/blob/main/conjur.md
 
 # 1. Example: create S3 bucket
 
@@ -182,6 +154,27 @@ provider "aws" {
 
 # 3 Using Conjur provider
 
+## 3.0. Preparing for Conjur integration
+
+### 3.0.1. Setup Conjur policy
+
+The Conjur policy `tf-vars.yaml` builds on top of the [app-vars.yaml](https://github.com/joetanx/setup/blob/main/app-vars.yaml) which is loaded in the [Conjur setup guide](https://github.com/joetanx/setup/blob/main/conjur.md)
+
+This `tf-vars.yaml` policy does the following:
+
+- Creates the policy `linux` and `windows` for the `remote-exec` example in [section 5](#5-example-remote-exec-provisioner)
+- Creates the policy `terraform` and host `demo` under it for use with the Terraform Conjur provider
+  - Grants host `terraform/demo` access to variables in `aws_api`, `linux` and `windows` policies by adding it to `consumers` group
+
+```console
+curl -O https://raw.githubusercontent.com/joetanx/conjur-terraform/main/tf-vars.yaml
+conjur policy load -b root -f tf-vars.yaml && rm -f tf-vars.yaml
+```
+
+☝️ The API key of the Conjur identity `host/terraform/demo` will be shown on console after loading the policy, this key is required for the Terraform Conjur provider
+
+### 3.0.2. Configuring the Terraform Conjur provider
+
 The parameters required for Conjur communications are passed to the [Conjur provider](https://registry.terraform.io/providers/cyberark/conjur/latest/docs) via either attributes on the manifest file and environment variables
 
 |Parameter|Description|
@@ -189,7 +182,7 @@ The parameters required for Conjur communications are passed to the [Conjur prov
 |Conjur URL|The URL of the Conjur cluster or followers|
 |Conjur account|The account name of the Conjur cluster|
 |Conjur authentication login|The host identity configured in Conjur policy|
-|Conjur authentication API key|The API generated when the host identity is created, a Conjur admin can rotate the API key for a host identity with `conjur host rotate-api-key -i <host-identity>` command|
+|Conjur authentication API key|The API generated when the host identity is created|
 |Conjur certificate path|The Conjur certificate or the CA certificate which signed the Conjur certificate is required, edit the certificate path variable or attribute to point to this file|
 
 ## 3.1. Using bash environment varibles
@@ -300,7 +293,31 @@ The GitLab-Conjur Integration is documented here: https://github.com/joetanx/con
 
 - [How does GitLab integration with Conjur using JWT work?](https://github.com/joetanx/conjur-gitlab#how-does-gitlab-integration-with-conjur-using-jwt-work)
 - [Setup GitLab](https://github.com/joetanx/conjur-gitlab#3-setup-gitlab)
-- [Conjur policies for GitLab JWT](https://github.com/joetanx/conjur-gitlab#4-conjur-policies-for-gitlab-jwt)
+
+### 4.1.1. Setup Conjur policy
+
+The Conjur policy `tf-gitlab-vars.yaml` builds on top of `authn-jwt-hosts.yaml` and `authn-jwt.yaml` in the [GitLab integration guide](https://github.com/joetanx/conjur-gitlab)
+
+This `tf-gitlab-vars.yaml` policy does the following:
+
+- Add GitLab projects as hosts into the `jwt-apps/gitlab` policy
+  - The `jwt-apps/gitlab` policy is created in https://github.com/joetanx/conjur-gitlab
+  - The hosts are added to the same-name layer, which is added to the JWT authenticator's `consumers` group to allow them to authenticate to the JWT web service
+  - Respective hosts are granted access to variables in `aws_api`, `linux` and `windows` policies by adding them to `consumers` group
+
+|GitLab project name|Conjur host identity|
+|---|---|
+|Terraform AWS S3 Demo|`cybr/terraform-aws-s3-demo`|
+|Terraform AWS S3 Cleanup|`cybr/terraform-aws-s3-cleanup`|
+|Terraform remote-exec SSH Demo|`cybr/terraform-remote-exec-ssh-demo`|
+|Terraform remote-exec WinRM Demo|`cybr/terraform-remote-exec-winrm-demo`|
+
+☝️ Project names are important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
+
+```console
+curl -O https://raw.githubusercontent.com/joetanx/conjur-terraform/main/tf-gitlab-vars.yaml
+conjur policy load -b root -f tf-gitlab-vars.yaml && rm -f tf-gitlab-vars.yaml
+```
 
 ## 4.2. Configure Terraform project in GitLab
 
