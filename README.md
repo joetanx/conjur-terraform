@@ -314,6 +314,7 @@ output "id" {
 output "arn" {
     value = aws_s3_bucket.demo.arn
 }
+```
 
 ### 4.3.2. Example GitLab pipeline
 
@@ -339,6 +340,7 @@ Check caller AWS STS token via Terraform using variables from Conjur:
   image:
     name: docker.io/hashicorp/terraform:latest
     entrypoint: [""]
+  stage: deploy
   before_script:
     - terraform init
   script:
