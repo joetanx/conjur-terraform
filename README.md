@@ -346,6 +346,48 @@ Check caller AWS STS token via Terraform using variables from Conjur:
     - terraform plan
 ```
 
+## 4.4. Use another GitLab project to verify and delete the S3 bucket (because we can =D)
+
+### 4.4.1. .gitlab-ci.yml
+
+```yaml
+variables:
+  AWS_REGION: ap-southeast-1
+  CONJUR_APPLIANCE_URL: "https://conjur.vx"
+  CONJUR_ACCOUNT: "cyberark"
+  CONJUR_AUTHN_JWT_SERVICE_ID: "gitlab"
+  CONJUR_AUTHN_JWT_TOKEN: "${CI_JOB_JWT_V2}"
+  CONJUR_CERT_FILE: "central.pem"
+Fetch variables from Conjur:
+  image:
+    name: docker.io/nfmsjoeg/authn-jwt-gitlab:latest
+  stage: .pre
+  script:
+    - echo AWS_ACCESS_KEY_ID=$(CONJUR_SECRET_ID="aws_api/awsakid" /authn-jwt-gitlab) >> conjurVariables.env
+    - echo AWS_SECRET_ACCESS_KEY=$(CONJUR_SECRET_ID="aws_api/awssak" /authn-jwt-gitlab) >> conjurVariables.env
+  artifacts:
+    reports:
+      dotenv: conjurVariables.env
+Verify bucket:
+  stage: test
+  image:
+    name: docker.io/amazon/aws-cli:latest
+    entrypoint: [""]
+  script:
+    - aws s3 ls s3://jtan-tfdemo
+    - aws s3 cp s3://jtan-tfdemo/demo.txt .
+    - cat ./demo.txt
+Delete bucket:
+  stage: deploy
+  image:
+    name: docker.io/amazon/aws-cli:latest
+    entrypoint: [""]
+  script:
+    - aws s3 rb s3://jtan-tfdemo --force
+  rules:
+    - when: manual
+```
+
 # 5. Example: using `remote-exec` to deploy Apache (Linux) or IIS (Windows) web servers
 
 Terraform is also able to configure deployed cloud instances using provisioners
