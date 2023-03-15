@@ -1,0 +1,78 @@
+- !policy
+  id: linux
+  body:
+  - &linux-variables
+    - !variable username
+    - !variable password
+  - !group consumers
+  - !permit
+    role: !group consumers
+    privilege: [ read, execute ]
+    resources: *linux-variables
+- !policy
+  id: windows
+  body:
+  - &windows-variables
+    - !variable username
+    - !variable password
+  - !group consumers
+  - !permit
+    role: !group consumers
+    privilege: [ read, execute ]
+    resources: *windows-variables
+- !policy
+  id: terraform
+  body:
+  - !layer
+  - !host
+    id: demo
+  - !grant 
+    role: !layer
+    member: !host demo
+- !grant
+  role: !group aws_api/consumers
+  member: !layer terraform
+- !grant
+  role: !group linux/consumers
+  member: !layer terraform
+- !grant
+  role: !group windows/consumers
+  member: !layer terraform
+- !policy
+  id: jwt-apps/gitlab
+  body:
+  - &terraform-gitlab-hosts
+    - !host
+      id: cybr/terraform-aws-s3-demo
+      annotations:
+        authn-jwt/gitlab/sub: project_path:cybr/terraform-aws-s3-demo:ref_type:branch:ref:main
+    - !host
+      id: cybr/terraform-aws-s3-cleanup
+      annotations:
+        authn-jwt/gitlab/sub: project_path:cybr/terraform-aws-s3-cleanup:ref_type:branch:ref:main
+    - !host
+      id: cybr/terraform-remote-exec-ssh-demo
+      annotations:
+        authn-jwt/gitlab/sub: project_path:cybr/terraform-remote-exec-ssh-demo:ref_type:branch:ref:main
+    - !host
+      id: cybr/terraform-remote-exec-winrm-demo
+      annotations:
+        authn-jwt/gitlab/sub: project_path:cybr/terraform-remote-exec-winrm-demo:ref_type:branch:ref:main
+  - !grant 
+    role: !layer
+    members: *terraform-gitlab-hosts
+- !grant
+  role: !group conjur/authn-jwt/gitlab/consumers
+  member: !layer jwt-apps/gitlab
+- !grant
+  role: !group aws_api/consumers
+  member: !host jwt-apps/gitlab/cybr/terraform-aws-s3-demo
+- !grant
+  role: !group aws_api/consumers
+  member: !host jwt-apps/gitlab/cybr/terraform-aws-s3-cleanup
+- !grant
+  role: !group linux/consumers
+  member: !host jwt-apps/gitlab/cybr/terraform-remote-exec-ssh-demo
+- !grant
+  role: !group windows/consumers
+  member: !host jwt-apps/gitlab/cybr/terraform-remote-exec-winrm-demo
