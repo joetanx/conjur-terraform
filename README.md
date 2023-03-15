@@ -38,20 +38,31 @@ Otherwise, setup Conjur master according to this guide: https://github.com/joeta
 
 ### 0.4.1. Setup Conjur policy
 
-- Load the Conjur policy `tf-vars.yaml`
-  - Creates the policy `PLACEHOLDER`
-    - Creates variables `PLACEHOLDER` and `PLACEHOLDER` to contain credentials for the Ansible managed node
-    - Creates `consumers` group to authorize members of this group to access the variables
-  - Creates the policy `PLACEHOLDER` with a same-name layer and a host `demo`
-    - The AAP server will use the Conjur identity `host/ansible/demo` to retrieve credentials
-    - Adds `ansible` layer to `consumers` group for `ssh_keys` policy
+Load the Conjur policy `tf-vars.yaml`
+
+- Creates the policy `linux` and `windows` for the `remote-exec` example in [section 5](#5-example-remote-exec-provisioner)
+- Creates the policy `terraform` and host `demo` under it for use with the Terraform Conjur provider
+  - Grants host `terraform/demo` access to variables in `aws_api`, `linux` and `windows` policies by adding it to `consumers` group
+- Add GitLab projects as hosts into the `jwt-apps/gitlab` policy
+  - The `jwt-apps/gitlab` policy is created in https://github.com/joetanx/conjur-gitlab
+  - The hosts are added to the same-name layer, which is added to the JWT authenticator's `consumers` group to allow them to authenticate to the JWT web service
+  - Respective hosts are granted access to variables in `aws_api`, `linux` and `windows` policies by adding them to `consumers` group
+
+|GitLab project name|Conjur host identity|
+|---|---|
+|Terraform AWS S3 Demo|`cybr/terraform-aws-s3-demo`|
+|Terraform AWS S3 Cleanup|`cybr/terraform-aws-s3-cleanup`|
+|Terraform remote-exec SSH Demo|`cybr/terraform-remote-exec-ssh-demo`|
+|Terraform remote-exec WinRM Demo|`cybr/terraform-remote-exec-winrm-demo`|
+
+☝️ Project names are important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
 
 ```console
 curl -O https://raw.githubusercontent.com/joetanx/conjur-terraform/main/tf-vars.yaml
 conjur policy load -b root -f tf-vars.yaml && rm -f tf-vars.yaml
 ```
 
-- **Note** ☝️ : the API key of the Conjur identity `host/ansible/demo` will be shown on console after loading the policy, this key is required to configure Conjur as external secrets management system in [4.3.](#43-configure-conjur-as-an-external-secrets-management-system)
+☝️ The API key of the Conjur identity `host/terraform/demo` will be shown on console after loading the policy, this key is required for the Terraform Conjur provider
 
 # 1. Example: create S3 bucket
 
@@ -295,9 +306,9 @@ The GitLab-Conjur Integration is documented here: https://github.com/joetanx/con
 
 ## 4.3. Configure Terraform project in GitLab
 
-GitLab project name: `Terraform S3 Demo`
+GitLab project name: `Terraform AWS S3 Demo`
 
-☝️ Remember that for GitLab JWT authentication to work, the project slug must match the annotation configured in Conjur policy
+☝️ Project name is important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
 
 ### 4.3.1. main.tf and demo.txt
 
@@ -352,6 +363,10 @@ Check caller AWS STS token via Terraform using variables from Conjur:
 
 ## 4.4. Use another GitLab project to verify and delete the S3 bucket (because we can =D)
 
+GitLab project name: `Terraform AWS S3 Cleanup`
+
+☝️ Project name is important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
+
 ### 4.4.1. .gitlab-ci.yml
 
 ```yaml
@@ -392,17 +407,17 @@ Delete bucket:
     - when: manual
 ```
 
-# 5. Example: using `remote-exec` to deploy Apache (Linux) or IIS (Windows) web servers
+# 5. Example: remote-exec provisioner
 
 Terraform is also able to configure deployed cloud instances using provisioners
 
-This section is a code dump of my example configuration
+This section is a code dump of my example configuration for using `remote-exec` to deploy Apache (Linux) or IIS (Windows) web servers
 
 ## 5.1. Linux (remote-exec/ssh)
 
 GitLab project name: `Terraform remote-exec SSH Demo`
 
-☝️ Remember that for GitLab JWT authentication to work, the project slug must match the annotation configured in Conjur policy
+☝️ Project name is important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
 
 ### 5.1.1. index.html
 
@@ -492,7 +507,7 @@ Run Terraform using variables from Conjur:
 
 GitLab project name: `Terraform remote-exec WinRM Demo`
 
-☝️ Remember that for GitLab JWT authentication to work, the project slug must match the annotation configured in Conjur policy
+☝️ Project name is important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
 
 ### 5.2.1. index.html
 
