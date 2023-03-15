@@ -295,6 +295,10 @@ The GitLab-Conjur Integration is documented here: https://github.com/joetanx/con
 
 ## 4.3. Configure Terraform project in GitLab
 
+GitLab project name: `Terraform S3 Demo`
+
+☝️ Remember that for GitLab JWT authentication to work, the project slug must match the annotation configured in Conjur policy
+
 ### 4.3.1. main.tf and demo.txt
 
 - `main.tf`: from step [1.1. main.tf](#11-maintf)
