@@ -42,7 +42,28 @@ yum -y install terraform
 rm -f /etc/yum.repos.d/hashicorp.repo
 ```
 
-# 1. Prepare Conjur
+# 1. Integration with Conjur
+
+This section assumes that the Conjur environment is already available.
+
+Otherwise, setup Conjur master according to this guide: https://github.com/joetanx/setup/blob/main/conjur.md
+
+## 4.1. Setup Conjur policy
+
+- Load the Conjur policy `tf-vars.yaml`
+  - Creates the policy `PLACEHOLDER`
+    - Creates variables `PLACEHOLDER` and `PLACEHOLDER` to contain credentials for the Ansible managed node
+    - Creates `consumers` group to authorize members of this group to access the variables
+  - Creates the policy `PLACEHOLDER` with a same-name layer and a host `demo`
+    - The AAP server will use the Conjur identity `host/ansible/demo` to retrieve credentials
+    - Adds `ansible` layer to `consumers` group for `ssh_keys` policy
+
+```console
+curl -O https://raw.githubusercontent.com/joetanx/conjur-terraform/main/tf-vars.yaml
+conjur policy load -b root -f tf-vars.yaml && rm -f tf-vars.yaml
+```
+
+- **Note** ☝️ : the API key of the Conjur identity `host/ansible/demo` will be shown on console after loading the policy, this key is required to configure Conjur as external secrets management system in [4.3.](#43-configure-conjur-as-an-external-secrets-management-system)
 
 # 2. Use case 1: Create S3 bucket in AWS
 
