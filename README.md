@@ -284,8 +284,6 @@ Same steps as [2.3.](#23-testing-the-example-manifest)
 
 # 4. Integrated with GitLab
 
-## 4.1. GitLab Integration
-
 GitLab integrates with Conjur via the JWT authenticator, which establishes a trust between Conjur and GitLab via the JSON Web Key Set (JWKS)
 - Each project on GitLab retrieving credentials will have its JWT signed and verified via the JWKS
 - This mitigates the "secret-zero" problem and enable each project on GitLab to be uniquely identified
@@ -296,7 +294,7 @@ Terraform has in-depth [integration with GitLab](https://docs.gitlab.com/ee/user
 
 Leveraging on the transitive integration relationships of Conjur ↔ GitLab ↔ Terraform, a more secure method of secrets management can be achieved
 
-### 4.2. Preparing GitLab
+## 4.1. Preparing GitLab
 
 The GitLab-Conjur Integration is documented here: https://github.com/joetanx/conjur-gitlab, relevant sections are linked below for convenient access:
 
@@ -304,18 +302,18 @@ The GitLab-Conjur Integration is documented here: https://github.com/joetanx/con
 - [Setup GitLab](https://github.com/joetanx/conjur-gitlab#3-setup-gitlab)
 - [Conjur policies for GitLab JWT](https://github.com/joetanx/conjur-gitlab#4-conjur-policies-for-gitlab-jwt)
 
-## 4.3. Configure Terraform project in GitLab
+## 4.2. Configure Terraform project in GitLab
 
 GitLab project name: `Terraform AWS S3 Demo`
 
 ☝️ Project name is important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
 
-### 4.3.1. main.tf and demo.txt
+### 4.2.1. main.tf and demo.txt
 
 - `main.tf`: from step [1.1. main.tf](#11-maintf)
 - `demo.txt`: from [demo.txt](/demo.txt) file in this repository (or really just any text will do)
 
-### 4.3.3. provider.tf
+### 4.2.3. provider.tf
 
 ```terraform
 terraform {
@@ -330,7 +328,7 @@ terraform {
 provider "aws" {}
 ```
 
-### 4.3.4. .gitlab-ci.yml
+### 4.2.4. .gitlab-ci.yml
 
 ```yaml
 variables:
@@ -361,13 +359,13 @@ Check caller AWS STS token via Terraform using variables from Conjur:
     - terraform plan
 ```
 
-## 4.4. Use another GitLab project to verify and delete the S3 bucket (because we can =D)
+## 4.3. Use another GitLab project to verify and delete the S3 bucket (because we can =D)
 
 GitLab project name: `Terraform AWS S3 Cleanup`
 
 ☝️ Project name is important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
 
-### 4.4.1. .gitlab-ci.yml
+### 4.3.1. .gitlab-ci.yml
 
 ```yaml
 variables:
