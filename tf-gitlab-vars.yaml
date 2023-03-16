@@ -26,7 +26,6 @@
   member: !layer jwt-apps/gitlab
 - !grant
   role: !group aws_api/consumers
-  member: !host jwt-apps/gitlab/cybr/terraform-aws-s3-demo
-- !grant
-  role: !group aws_api/consumers
-  member: !host jwt-apps/gitlab/cybr/terraform-aws-s3-cleanup
+  members:
+  - !host jwt-apps/gitlab/cybr/terraform-aws-s3-demo
+  - !host jwt-apps/gitlab/cybr/terraform-aws-s3-cleanup
