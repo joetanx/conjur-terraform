@@ -355,9 +355,9 @@ variables:
   CONJUR_AUTHN_JWT_TOKEN: "${CI_JOB_JWT_V2}"
   CONJUR_CERT_FILE: "central.pem"
 Fetch variables from Conjur:
+  stage: .pre
   image:
     name: docker.io/nfmsjoeg/authn-jwt-gitlab:latest
-  stage: .pre
   script:
     - echo AWS_ACCESS_KEY_ID=$(CONJUR_SECRET_ID="aws_api/awsakid" /authn-jwt-gitlab) >> conjurVariables.env
     - echo AWS_SECRET_ACCESS_KEY=$(CONJUR_SECRET_ID="aws_api/awssak" /authn-jwt-gitlab) >> conjurVariables.env
@@ -365,10 +365,10 @@ Fetch variables from Conjur:
     reports:
       dotenv: conjurVariables.env
 Run Terraform using variables from Conjur:
+  stage: deploy
   image:
     name: docker.io/hashicorp/terraform:latest
     entrypoint: [""]
-  stage: deploy
   before_script:
     - terraform init
   script:
@@ -392,9 +392,9 @@ variables:
   CONJUR_AUTHN_JWT_TOKEN: "${CI_JOB_JWT_V2}"
   CONJUR_CERT_FILE: "central.pem"
 Fetch variables from Conjur:
+  stage: .pre
   image:
     name: docker.io/nfmsjoeg/authn-jwt-gitlab:latest
-  stage: .pre
   script:
     - echo AWS_ACCESS_KEY_ID=$(CONJUR_SECRET_ID="aws_api/awsakid" /authn-jwt-gitlab) >> conjurVariables.env
     - echo AWS_SECRET_ACCESS_KEY=$(CONJUR_SECRET_ID="aws_api/awssak" /authn-jwt-gitlab) >> conjurVariables.env
@@ -509,9 +509,9 @@ variables:
   CONJUR_AUTHN_JWT_TOKEN: "${CI_JOB_JWT_V2}"
   CONJUR_CERT_FILE: "central.pem"
 Fetch variables from Conjur:
+  stage: .pre
   image:
     name: docker.io/nfmsjoeg/authn-jwt-gitlab:latest
-  stage: .pre
   script:
     - echo TF_VAR_LINUX_USERNAME=$(CONJUR_SECRET_ID="linux/username" /authn-jwt-gitlab) >> conjurVariables.env
     - echo TF_VAR_LINUX_PASSWORD=$(CONJUR_SECRET_ID="linux/password" /authn-jwt-gitlab) >> conjurVariables.env
@@ -519,10 +519,10 @@ Fetch variables from Conjur:
     reports:
       dotenv: conjurVariables.env
 Run Terraform using variables from Conjur:
+  stage: deploy
   image:
     name: docker.io/hashicorp/terraform:latest
     entrypoint: [""]
-  stage: deploy
   before_script:
     - terraform init
   script:
@@ -597,9 +597,9 @@ variables:
   CONJUR_AUTHN_JWT_TOKEN: "${CI_JOB_JWT_V2}"
   CONJUR_CERT_FILE: "central.pem"
 Fetch variables from Conjur:
+  stage: .pre
   image:
     name: docker.io/nfmsjoeg/authn-jwt-gitlab:latest
-  stage: .pre
   script:
     - echo TF_VAR_WINDOWS_USERNAME=$(CONJUR_SECRET_ID="windows/username" /authn-jwt-gitlab) >> conjurVariables.env
     - echo TF_VAR_WINDOWS_PASSWORD=$(CONJUR_SECRET_ID="windows/password" /authn-jwt-gitlab) >> conjurVariables.env
@@ -607,10 +607,10 @@ Fetch variables from Conjur:
     reports:
       dotenv: conjurVariables.env
 Run Terraform using variables from Conjur:
+  stage: deploy
   image:
     name: docker.io/hashicorp/terraform:latest
     entrypoint: [""]
-  stage: deploy
   before_script:
     - terraform init
   script:
