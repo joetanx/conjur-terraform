@@ -1,0 +1,32 @@
+- !policy
+  id: linux
+  body:
+  - &linux-variables
+    - !variable username
+    - !variable password
+  - !group consumers
+  - !permit
+    role: !group consumers
+    privilege: [ read, execute ]
+    resources: *linux-variables
+- !policy
+  id: windows
+  body:
+  - &windows-variables
+    - !variable username
+    - !variable password
+  - !group consumers
+  - !permit
+    role: !group consumers
+    privilege: [ read, execute ]
+    resources: *windows-variables
+- !grant
+  role: !group linux/consumers
+  members:
+  - !layer terraform
+  - !host jwt-apps/gitlab/cybr/terraform-remote-exec-ssh-demo
+- !grant
+  role: !group windows/consumers
+  members:
+  - !layer terraform
+  - !host jwt-apps/gitlab/cybr/terraform-remote-exec-winrm-demo
