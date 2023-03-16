@@ -162,9 +162,8 @@ The Conjur policy `tf-vars.yaml` builds on top of the [app-vars.yaml](https://gi
 
 This `tf-vars.yaml` policy does the following:
 
-- Creates the policy `linux` and `windows` for the `remote-exec` example in [section 5](#5-example-remote-exec-provisioner)
 - Creates the policy `terraform` and host `demo` under it for use with the Terraform Conjur provider
-  - Grants host `terraform/demo` access to variables in `aws_api`, `linux` and `windows` policies by adding it to `consumers` group
+- Grants host `terraform/demo` access to variables in `aws_api` policy
 
 ```console
 curl -O https://raw.githubusercontent.com/joetanx/conjur-terraform/main/tf-vars.yaml
@@ -302,8 +301,8 @@ This `tf-gitlab-vars.yaml` policy does the following:
 
 - Add GitLab projects as hosts into the `jwt-apps/gitlab` policy
   - The `jwt-apps/gitlab` policy is created in https://github.com/joetanx/conjur-gitlab
-  - The hosts are added to the same-name layer, which is added to the JWT authenticator's `consumers` group to allow them to authenticate to the JWT web service
-  - Respective hosts are granted access to variables in `aws_api`, `linux` and `windows` policies by adding them to `consumers` group
+  - The hosts are added to the same-name layer and allowed to authenticate to the JWT web service
+  - Respective hosts are granted access to variables in `aws_api` policy
 
 |GitLab project name|Conjur host identity|
 |---|---|
@@ -427,6 +426,18 @@ Delete bucket:
 Terraform is also able to configure deployed cloud instances using provisioners
 
 This section is a code dump of my example configuration for using `remote-exec` to deploy Apache (Linux) or IIS (Windows) web servers
+
+## 5.0. Setup Conjur policy
+
+This `tf-rex-vars.yaml` policy does the following:
+
+- Creates the policies `linux` and `windows` to hold the credentials used in `remote-exec` tasks
+- Grant access for the respective defined in hosts `tf-vars.yaml` and `tf-gitlab-vars.yaml` to the variables in `linux` and `windows` policies
+
+```console
+curl -O https://raw.githubusercontent.com/joetanx/conjur-terraform/main/tf-rex-vars.yaml
+conjur policy load -b root -f tf-rex-vars.yaml && rm -f tf-rex-vars.yaml
+```
 
 ## 5.1. Linux (remote-exec/ssh)
 
