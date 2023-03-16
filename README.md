@@ -364,7 +364,7 @@ Fetch variables from Conjur:
   artifacts:
     reports:
       dotenv: conjurVariables.env
-Check caller AWS STS token via Terraform using variables from Conjur:
+Run Terraform using variables from Conjur:
   image:
     name: docker.io/hashicorp/terraform:latest
     entrypoint: [""]
@@ -372,7 +372,7 @@ Check caller AWS STS token via Terraform using variables from Conjur:
   before_script:
     - terraform init
   script:
-    - terraform plan
+    - terraform apply -auto-approve
 ```
 
 ## 4.3. Use another GitLab project to verify and delete the S3 bucket (because we can =D)
