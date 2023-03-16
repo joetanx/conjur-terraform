@@ -30,9 +30,3 @@
 - !grant
   role: !group aws_api/consumers
   member: !host jwt-apps/gitlab/cybr/terraform-aws-s3-cleanup
-- !grant
-  role: !group linux/consumers
-  member: !host jwt-apps/gitlab/cybr/terraform-remote-exec-ssh-demo
-- !grant
-  role: !group windows/consumers
-  member: !host jwt-apps/gitlab/cybr/terraform-remote-exec-winrm-demo
