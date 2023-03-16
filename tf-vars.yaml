@@ -1,26 +1,4 @@
 - !policy
-  id: linux
-  body:
-  - &linux-variables
-    - !variable username
-    - !variable password
-  - !group consumers
-  - !permit
-    role: !group consumers
-    privilege: [ read, execute ]
-    resources: *linux-variables
-- !policy
-  id: windows
-  body:
-  - &windows-variables
-    - !variable username
-    - !variable password
-  - !group consumers
-  - !permit
-    role: !group consumers
-    privilege: [ read, execute ]
-    resources: *windows-variables
-- !policy
   id: terraform
   body:
   - !layer
@@ -31,10 +9,4 @@
     member: !host demo
 - !grant
   role: !group aws_api/consumers
-  member: !layer terraform
-- !grant
-  role: !group linux/consumers
-  member: !layer terraform
-- !grant
-  role: !group windows/consumers
   member: !layer terraform
