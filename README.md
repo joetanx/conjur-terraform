@@ -324,12 +324,17 @@ GitLab project name: `Terraform AWS S3 Demo`
 
 ☝️ Project name is important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
 
-### 4.2.1. main.tf and demo.txt
+![image](images/tf-s3-new-project.png)
 
-- `main.tf`: from step [1.1. main.tf](#11-maintf)
-- `demo.txt`: from [demo.txt](/demo.txt) file in this repository (or really just any text will do)
+### 4.2.1. main.tf, demo.txt and Conjur certificate
 
-### 4.2.3. provider.tf
+|File|Description|
+|---|---|
+|`main.tf`|From step [1.1. main.tf](#11-maintf)|
+|`demo.txt`|From [demo.txt](/demo.txt) file in this repository (or really just any text will do)|
+|Conjur certificate|The Conjur certificate or the CA certificate which signed the Conjur certificate is required, edit the certificate path variable or attribute to point to this file (`central.pem` in this example)|
+
+### 4.2.2. provider.tf
 
 ```terraform
 terraform {
@@ -344,7 +349,14 @@ terraform {
 provider "aws" {}
 ```
 
-### 4.2.4. .gitlab-ci.yml
+### 4.2.3. .gitlab-ci.yml
+
+There are 2 stages in the pipeline code below:
+1. Fetch variables from Conjur (using CyberArk GitLab runner image)
+  - Authenticate to Conjur `authn-jwt/gitlab` using `CI_JOB_JWT_V2`
+  - Retrive AWS credentials
+  - Pass the credentials to the next stage using `artifacts:`, `reports:`, `dotenv:`
+2. Run Terraform using credentials from Conjur (using `docker.io/hashicorp/terraform:latest` image)
 
 ```yaml
 variables:
@@ -375,13 +387,41 @@ Run Terraform using variables from Conjur:
     - terraform apply -auto-approve
 ```
 
+![image](images/tf-s3-editor.png)
+
+### 4.2.4. Verify files in new project
+
+![image](images/tf-s3-files.png)
+
+### 4.2.5. Pipeline run results
+
+Both jobs passed in the pipeline:
+
+![image](images/tf-s3-pipeline-passed.png)
+
+Output for fetch variables job:
+
+![image](images/tf-s3-job-1.png)
+
+Output for show Terraform job:
+
+![image](images/tf-s3-job-2.png)
+
 ## 4.3. Use another GitLab project to verify and delete the S3 bucket (because we can =D)
 
 GitLab project name: `Terraform AWS S3 Cleanup`
 
 ☝️ Project name is important! Remember that for GitLab JWT authentication to work, the `project path` must match the `host identity` configured in the Conjur policy
 
-### 4.3.1. .gitlab-ci.yml
+![image](images/s3-cleanup-new-project.png)
+
+### 4.3.1. Add Conjur certificate
+
+Place the Conjur certificate or the CA certificate which signed the Conjur certificate is required, edit the certificate path variable or attribute to point to this file 
+
+The `CONJUR_CERT_FILE` variable must point to this file (`central.pem` in this example)
+
+### 4.3.2. .gitlab-ci.yml
 
 ```yaml
 variables:
@@ -420,6 +460,30 @@ Delete bucket:
   rules:
     - when: manual
 ```
+
+![image](images/s3-cleanup-editor.png)
+
+### 4.2.3. Pipeline run results
+
+Pipeline is in blocked status because the last job to delete bucket was set to `manual`:
+
+![image](images/s3-cleanup-pipeline-blocked.png)
+
+Output for fetch variables job:
+
+![image](images/s3-cleanup-job-1.png)
+
+Output for verify bucket job (the content of `demo.txt` was successfully fetched from the bucket):
+
+![image](images/s3-cleanup-job-2.png)
+
+Proceed to run the last job to delete bucket:
+
+![image](images/s3-cleanup-job-3-run.png)
+
+Output for delete bucket job:
+
+![image](images/s3-cleanup-job-3.png)
 
 # 5. Example: remote-exec provisioner
 
